@@ -2,3 +2,5 @@
 **/JuceLibraryCode
 .cache
 .ccls-cache
+
+Docs/build
