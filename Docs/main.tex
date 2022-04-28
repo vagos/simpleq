@@ -5,6 +5,8 @@
 \usepackage{hyperref}
 \modulolinenumbers[5]
 
+\usetikzlibrary{positioning}
+
 %% `Elsevier LaTeX' style
 \bibliographystyle{unsrt}
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -37,6 +39,53 @@
 \linenumbers
 
 \section{Σχεδιασμός}
+
+\begin{figure}[htpb]
+
+    \begin{center}
+
+        \begin{tikzpicture}
+
+        % \node[draw,
+        %     circle,
+        %     minimum size=0.6cm,
+        %     fill=Rhodamine!50
+        %     ] (sum) at (0,0){};
+        % \draw (sum.north east) -- (sum.south west)
+        %     (sum.north west) -- (sum.south east);
+        % \node[left=-1pt] at (sum.center){\tiny $+$};
+        % \node[below] at (sum.center){\tiny $-$};
+
+        % Controller
+
+        \node [draw,
+        fill=Goldenrod,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        right=1cm
+            ] (dsp) {$DSP$};
+
+        \draw[->] ++(-1,0) -- (dsp.west) 
+            node[midway,above]{$audio_{in}$};
+
+        \draw[->] ++(-1,0) -- (dsp.west) 
+            node[midway,above]{$audio_{in}$};
+
+        \draw[->] (dsp.east) --  ++(+2,0) 
+            node[midway,above]{$audio_{out}$};
+        \end{tikzpicture}
+    \end{center}
+
+    \caption{Βασική δομή του \en{plugin}.} 
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./assets/Carla_Basic.png}
+    \caption{Εφαρμογή του \src{SimpleEq plugin} στο περιβάλλον \en{Carla}.}
+    \label{fig:carla_basic}
+\end{figure}
+
 \paragraph{Θεωρία \en{IIR} φίλτρων}
 \paragraph{Φίλτρα \en{Butteworth}} 
 
