@@ -201,9 +201,9 @@ bool SimpleEQAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SimpleEQAudioProcessor::createEditor()
 {
-    // return new SimpleEQAudioProcessorEditor (*this);
+    return new SimpleEQAudioProcessorEditor (*this);
 
-    return new juce::GenericAudioProcessorEditor(*this);
+    // return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -250,8 +250,8 @@ void SimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSettings
     auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(), chainSettings.peakFreq, chainSettings.peakQuality, 
             juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
     
-    updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients,
-        rightChain.get<ChainPositions::Peak>().coefficients = *peakCoefficients);
+    updateCoefficients(leftChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+    updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
     
 }
 
