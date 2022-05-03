@@ -2,7 +2,7 @@
 
 all:
 	pdflatex -output-directory build main.tex 
-	bibtex build/main.aux
+	bibtex8 build/main.aux
 watch:
 	find .  -name "*.tex" | entr -r make
 

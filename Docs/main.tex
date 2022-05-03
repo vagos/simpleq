@@ -1,4 +1,6 @@
-\documentclass[review]{article}
+\documentclass{article}
+
+
 
 \input{structure.tex}
 \usepackage{lineno}
@@ -7,8 +9,10 @@
 
 \usetikzlibrary{positioning}
 
+\makeindex
+
 %% `Elsevier LaTeX' style
-\bibliographystyle{unsrt}
+\bibliographystyle{ieeetr}
 %%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
@@ -89,14 +93,14 @@
 \paragraph{Θεωρία \en{IIR} φίλτρων}
 \paragraph{Φίλτρα \en{Butteworth}} 
 
+\cite{Butteworth1930}
+
 \section{Υλοποίηση}
 
 \paragraph{Γραφική Διεπαφή}
 \paragraph{Χρήση}
 \paragraph{Μετρήσεις}
 
-\cite{Dirac1953888}
-
-\bibliography{bibliography.bib}
+\bibliography{bibliography}
 
 \end{document}

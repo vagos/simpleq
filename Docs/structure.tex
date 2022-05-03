@@ -2,7 +2,10 @@
 
 \usepackage{listings} % Code listings, with syntax highlighting
 
-\usepackage[main = greek, english]{babel} % English language hyphenation
+\usepackage[utf8]{inputenc} % Required for inputting international characters
+\usepackage[T1]{fontenc} % Use 8-bit encoding
+
+\usepackage[english, greek]{babel} % English language hyphenation
 
 \usepackage{graphicx} % Required for inserting images
 \graphicspath{{Figures/}{./}} % Specifies where to look for included images (trailing slash required)
@@ -20,9 +23,6 @@
 \numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
 \numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
 \numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
-
-\usepackage[utf8]{inputenc} % Required for inputting international characters
-\usepackage[T1]{fontenc} % Use 8-bit encoding
 
 \usepackage{translator}
 
@@ -58,3 +58,24 @@
     \lstinputlisting[language=#2, frame=single, style=code, caption=#3]{#1}
     \end{otherlanguage}
 }
+
+% Some Greek stuff
+\usepackage{graphicx}
+\usepackage{indentfirst}
+\usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{hyphenat}
+\usepackage{makeidx}
+
+\addto\captionsgreek{%
+  \renewcommand{\indexname}{Ευρετήριο όρων}%
+  \renewcommand{\bibname}{\textgreek{Βιβλιογραφία}}%
+}
+
+% latin text (and greek text)
+\newcommand{\tl}[1]{\textlatin{#1}}
+\newcommand{\tg}[1]{\textgreek{#1}}
+\newcommand{\lat} {\latintext} 
+\newcommand{\gre}{\greektext}
