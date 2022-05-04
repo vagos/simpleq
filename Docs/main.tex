@@ -5,9 +5,12 @@
 \input{structure.tex}
 \usepackage{lineno}
 \usepackage{hyperref}
+\usepackage{cleveref}
 \modulolinenumbers[5]
 
 \usetikzlibrary{positioning}
+
+\crefname{equation}{εξ.}{εξ.}
 
 \makeindex
 
@@ -83,6 +86,74 @@
     \caption{Βασική δομή του \en{plugin}.} 
 \end{figure}
 
+\paragraph{Θεωρία \en{IIR} φίλτρων}
+
+Στην εργασία αυτή θα περιοριστούμε στην υλοποίηση φίλτρων 2ης τάξης, με τους 
+αλγόριθμους όμως να είναι ικανούς να παράγουν φίλτρα οσοδήποτε μεγάλης τάξης (χωρίς 
+βέβαια να εγγυάται η ορθότητα του τελικού αποτελέσματος λόγω πεπαρασμένης ακρίβειας 
+στις τιμές των συντελεστών). 
+
+Έχοντας ως βάση ένα χαμηλοπερατό φίλτρο 2ης τάξης \cite{OpenheimAlan}
+
+\begin{equation}
+    H(s) = \frac{1}{s^2 + s/Q + 1} 
+    \label{eq:h_lowpassfilter}
+\end{equation}
+
+Μέσω του διπολικού $Z$ μετασχηματισμού, θέτωντας $s = 2f_s\frac{z-1}{z+1}$ έχουμε \cite{BilinearZTransformWeb}
+
+\begin{equation}
+    H(z) =  
+\end{equation}
+
+
+\paragraph{Φίλτρα \en{Butteworth}} 
+
+\cite{Butteworth1930}
+
+Για τους συντελεστές του φίλτρου \en{Butterworth} μπορούμε απλά να υπολογίσουμε την τιμή 
+της σταθεράς $Q$ και να πάρουμε τους συντελεστές από την \cref{eq:h_lowpassfilter} \cite{OpenheimAlan, JuceDocumentation}
+
+\begin{align}
+    1/Q &= {2cos(\frac{2i + 1}{n}\pi)}, \; i = 0..\frac{n}{2} \qquad n = {\text{άρτιο}} \\ 
+    1/Q &= {2cos(\frac{i + 1}{2n}\pi)}, \; i = 0..\frac{n}{2} \qquad n = {\text{περιττό}}
+\end{align}
+
+\paragraph{Αλγόριθμος Υπολογισμού Συντελεστών}
+
+Από την προηγούμενη μαθηματική ανάλυση, ο υπολογισμός των συντελεστών για το εκάστοτε φίλτρο είναι πλέον 
+τετριμένος. 
+
+
+\section{Υλοποίηση}
+
+Για την υλοποίηση του φίλτρου χρησιμοποιήθηκαν οι βιβλιοθήκες του πακέτου 
+\en{Juce}. Το πακέτο αυτό χωρίζεται σε ενότητες \en{(modules)}, από τις οποίες
+χρησιμοποιούμε κατά βάση την ενότητα \src{juce::dsp}. 
+Εδώ, περιλαμβάνονται κλάσεις μέσω την οποίων μπορεί να γίνει η δημιουργία 
+ενός φίλτρου.
+
+Ο τρόπος με τον οποίο η εφαρμογή μας επεξεργάζεται τα εισερχόμενα δείγματα
+\en{(samples)} είναι στη ρουτίνα \src{processBlock} όπου δεχόμαστε σαν είσοδο έναν
+\en{buffer} από δείγματα στα οποία μπορούσαμε να εφαρφμόσουμε οποιονδήποτε αλγόριθμο. 
+
+Το \en{plugin} στην πραγματικότητα αποτελείται από τρία (3) φίλτρα: 
+
+\begin{enumerate}
+    \item Ένα χαμηλοπερατό φίλτρο \en{(low pass filter)}
+    \item Ένα φίλτρο κορυφής
+    \item Ένα υψηπερατό φίλτρο
+\end{enumerate}
+
+Ο τρόπος με τον οποίο αυτό περιγράφεται στον κώδικα είναι μέσω της δομής 
+\src{ProcessorChain} η οποία αναπαριστά μία αλυσιδά επεξεργαστών. 
+Κατά την εκτέλεση της εφαρμογής, η ακολουθία από δείγματα
+περνάει από την ρουτίνα επεξεργασίας του κάθε φίλτρου διαδοχικά. \cite{JuceDocumentation}
+
+
+\paragraph{Γραφική Διεπαφή}
+\paragraph{Χρήση}
+
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{./assets/Carla_Basic.png}
@@ -90,16 +161,22 @@
     \label{fig:carla_basic}
 \end{figure}
 
-\paragraph{Θεωρία \en{IIR} φίλτρων}
-\paragraph{Φίλτρα \en{Butteworth}} 
 
-\cite{Butteworth1930}
-
-\section{Υλοποίηση}
-
-\paragraph{Γραφική Διεπαφή}
-\paragraph{Χρήση}
 \paragraph{Μετρήσεις}
+
+Μετά τη δημιουργία της εφαρμογής ισοστάθμισης, έγινε εισαγωγή του \en{plugin} 
+\src{SimpleEQ} στο περιβάλλον επεξεργασίας ψηφιακού ήχου (\en{DAW}) \en{Ardour}, 
+το οποίο λειτουργεί σαν υποδοχέας και παρέχει δυνατότητες μέτρησης της απόκρισης συχνότας και 
+φάσης του φίλτρου (\cref{fig:ardour_analysis}).
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./assets/PluginAnalysisArdour.png}
+    \caption{Ανάλυση του \src{SimpleEQ} μέσα από το \en{Ardour}. Φαίνεται η απόκριση συχνότητας (άσπρο) και η απόκριση φάσης (κόκκινο).}
+    \label{fig:ardour_analysis}
+\end{figure}
+
+\newpage
 
 \bibliography{bibliography}
 
