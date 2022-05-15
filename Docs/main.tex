@@ -1,22 +1,23 @@
 \documentclass{article}
 
-
-
 \input{structure.tex}
 \usepackage{lineno}
 \usepackage{hyperref}
 \usepackage{cleveref}
+\usepackage{epigraph} 
 \modulolinenumbers[5]
 
 \usetikzlibrary{positioning}
+\usetikzlibrary{dsp,chains}
+
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+\newcommand{\z}{\mathpzc{z}}
 
 \crefname{equation}{εξ.}{εξ.}
 
 \makeindex
 
-%% `Elsevier LaTeX' style
 \bibliographystyle{ieeetr}
-%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
@@ -36,10 +37,6 @@
     ενός ισοσταθμιστή ήχου. 
 \end{abstract}
 
-% \begin{keyword}
-%     \en{DSP}\sep \en{plguin}\sep ισοστάθμιση
-% % \MSC[2010] 00-01\sep  99-00
-% \end{keyword}
 
 \end{titlepage}
 
@@ -52,16 +49,6 @@
     \begin{center}
 
         \begin{tikzpicture}
-
-        % \node[draw,
-        %     circle,
-        %     minimum size=0.6cm,
-        %     fill=Rhodamine!50
-        %     ] (sum) at (0,0){};
-        % \draw (sum.north east) -- (sum.south west)
-        %     (sum.north west) -- (sum.south east);
-        % \node[left=-1pt] at (sum.center){\tiny $+$};
-        % \node[below] at (sum.center){\tiny $-$};
 
         % Controller
 
@@ -100,16 +87,15 @@
     \label{eq:h_lowpassfilter}
 \end{equation}
 
-Μέσω του διπολικού $Z$ μετασχηματισμού, θέτωντας $s = 2f_s\frac{z-1}{z+1}$ έχουμε \cite{BilinearZTransformWeb}
+Μέσω του διπολικού $Z$ μετασχηματισμού, θέτωντας $s = \frac{1}{K}\frac{z-1}{z+1} \; K = \frac{1}{2F_s}$ έχουμε \cite{BilinearZTransformWeb}
 
 \begin{equation}
-    H(z) =  
+    H(z) = \frac{K^2 + 2K^2 z^{-1} + K^2 z^{-2}}{(K^2 + K/Q + 1) + 2(K^2 - 1) z^{-1} + (K^2 - K/Q + 1) z^{-2}}
+    \label{eq:h_z_final}
 \end{equation}
 
 
 \paragraph{Φίλτρα \en{Butteworth}} 
-
-\cite{Butteworth1930}
 
 Για τους συντελεστές του φίλτρου \en{Butterworth} μπορούμε απλά να υπολογίσουμε την τιμή 
 της σταθεράς $Q$ και να πάρουμε τους συντελεστές από την \cref{eq:h_lowpassfilter} \cite{OpenheimAlan, JuceDocumentation}
@@ -124,6 +110,14 @@
 Από την προηγούμενη μαθηματική ανάλυση, ο υπολογισμός των συντελεστών για το εκάστοτε φίλτρο είναι πλέον 
 τετριμένος. 
 
+Αντικαθιστώντας τις τιμές για το $Q$ για ένα φίτλρο \en{Butteworth} στη σχέση \ref{eq:h_z_final}
+έχουμε πλέον τους συντελεστές του φίλτρου. 
+
+
+\begin{align}
+    a_0 &= \frac{K^2}{K^2 + K/Q +1} & a_1 &= 2a_0 & a_2 &= a_0 \\
+    b_0 &= 1 & b_1 &= \frac{2(K^2 - 1)}{K^2 + K/Q + 1} & b_2 &= \frac{K^2 - K/Q + 1}{K^2 + K/Q + 1}
+\end{align}
 
 \section{Υλοποίηση}
 
@@ -150,8 +144,127 @@
 Κατά την εκτέλεση της εφαρμογής, η ακολουθία από δείγματα
 περνάει από την ρουτίνα επεξεργασίας του κάθε φίλτρου διαδοχικά. \cite{JuceDocumentation}
 
+Ο υπολογισμός της νέας αριθμητικής τιμής του κάθε δείγματος γίνεται με 
+τη σειρά που φαίνεται στη \cref{fig:iir_filter_block}. 
+Η καθυστέρηση του σήματος εισόδου γίνεται εφόσων το \en{plugin}
+αποθηκεύει την κατάστασή του, η οποία είναι ένας πίνακας με τις τιμές της εξόδου 
+του στα προηγούμενα δείγματα. Στην περίπτωση ενός φίλτρου 2ης τάξης 
+αρκεί να αποθηκεύουμε τις δύο (2) προηγούμενες τιμές εξόδου του.
+
+\vspace{5mm}
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+
+	% Place nodes using a matrix
+    \matrix (m1) [row sep=5mm, column sep=9mm]
+    {
+        \node[dspnodeopen, dsp/label=above] (x) {$x[n]$}     ; &
+		\node[dspnodefull]                 (m11) {}          ; &
+        \node[dspmixer, dsp/label=above]    (b0) {$b_0$}     ; &
+        \node[dspadder]                     (adder) {}       ; &
+		\node[coordinate]                   (m12) {}         ; &
+		\node[dspnodefull]                   (m13) {}        ; &
+        \node[dspnodeopen, dsp/label=above] (y) {$y[n]$}     ; &
+        \\
+        \node[coordinate]                   (mc) {}          ; &
+		\node[dspsquare]                   (z01) {$\z^{-1}$} ; &
+        \node[coordinate]                   (mc) {}          ; &
+        \node[coordinate]                   (mc) {}          ; &
+        \node[coordinate]                   (mc) {}          ; &
+		\node[dspsquare]                   (z02) {$\z^{-1}$} ; &
+        \\
+        \node[coordinate]                   (mc) {}          ; &
+        \node[dspnodefull]                   (m31) {}        ; &
+        \node[dspmixer, dsp/label=above]    (b1) {$b_1$}     ; &
+        \node[coordinate]                   (mc) {}          ; &
+        \node[dspmixer, dsp/label=above]    (a1) {$-a_1$}    ; &
+        \node[dspnodefull]                   (m32) {}        ; &
+        \\
+        \node[coordinate]                   (mc) {}          ; &
+		\node[dspsquare]                   (z11) {$\z^{-1}$} ; &
+        \node[coordinate]                   (mc) {}          ; &
+        \node[coordinate]                   (mc) {}          ; &
+        \node[coordinate]                   (mc) {}          ; &
+		\node[dspsquare]                   (z12) {$\z^{-1}$} ; &
+        \\
+        \node[coordinate]                   (mc) {}          ; &
+        \node[dspnodefull]                   (m51) {}        ; &
+        \node[dspmixer, dsp/label=above]    (b2) {$b_2$}     ; &
+        \node[coordinate]                   (mc) {}          ; &
+        \node[dspmixer, dsp/label=above]    (a2) {$-a_2$}    ; &
+        \node[dspnodefull]                   (m52) {}        ; &
+        \\
+    }                                                        ;
+
+	% Draw connections
+
+	\begin{scope}[start chain]
+		\chainin (x);
+		\chainin (m11) [join=by dspline];
+		\chainin (b0) [join=by dspline];
+		\chainin (adder) [join=by dspconn];
+		\chainin (m13) [join=by dspconn];
+		\chainin (y) [join=by dspconn];
+	\end{scope}
+
+	\begin{scope}[start chain]
+		\chainin (m11);
+		\chainin (z01) [join=by dspconn];
+		\chainin (m31) [join=by dspconn];
+		\chainin (b1) [join=by dspconn];
+		\chainin (adder) [join=by dspconn];
+	\end{scope}
+
+	\begin{scope}[start chain]
+		\chainin (m31);
+		\chainin (z11) [join=by dspconn];
+		\chainin (m51) [join=by dspconn];
+		\chainin (b2) [join=by dspconn];
+		\chainin (adder) [join=by dspconn];
+	\end{scope}
+
+	\begin{scope}[start chain]
+		\chainin (m13);
+		\chainin (z02) [join=by dspconn];
+		\chainin (m32) [join=by dspconn];
+		\chainin (a1) [join=by dspconn];
+		\chainin (adder) [join=by dspconn];
+	\end{scope}
+
+	\begin{scope}[start chain]
+		\chainin (m32);
+		\chainin (z12) [join=by dspconn];
+		\chainin (m52) [join=by dspconn];
+		\chainin (a2) [join=by dspconn];
+		\chainin (adder) [join=by dspconn];
+	\end{scope}
+	
+\end{tikzpicture}
+
+\caption{Υλοποίηση του \en{IIR} φίλτρου}
+\label{fig:iir_filter_block}
+
+\end{figure}
 
 \paragraph{Γραφική Διεπαφή}
+
+\epigraph{\en{The first 90 percent of the code accounts for the first 90 percent of
+the development time. The remaining 10 percent of the code accounts for the
+other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
+
+Η βιβλιοθήκη \en{Juce} παρέχει τη δυνανότητα να αναπτύξει ο χρήστης 
+σύνθετες γραφικές διεπαφές μέσα από τις οποίες μπορεί κάποιος να ελέγχει 
+το \en{DSP} μέρος της εφαρμογής (συχνότητες αποκοπής κτλ).
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./assets/GUI.png}
+    \caption{Η τελική γραφική διεπαφή του ισοσταθμιστή.}
+    \label{fig:}
+\end{figure}
+
 \paragraph{Χρήση}
 
 \begin{figure}[htpb]
@@ -161,6 +274,12 @@
     \label{fig:carla_basic}
 \end{figure}
 
+Για την χρήση του \en{plugin} \src{Simple EQ} μπορεί να γίνει 
+σύνδεσή του με άλλες ροές ήχου στον υπολογιστή μέσω ενός \en{audio plugin host}.
+Ένα πολύ ικανό και δημοφιλές είναι το λογισμικό \en{Carla} \cite{CarlaApp}, 
+μέσα από το οποίο μπορούμε να κατευθύνουμε τη ροή ήχου από μία εφαρμογή 
+στον υπολογιστή μας, μέσα από κάποιο \en{plugin} και τελικά να έχουμε την έξοδο 
+στα ηχεία (ή οποιαδήποτε άλλη συσκευή).
 
 \paragraph{Μετρήσεις}
 
@@ -175,6 +294,7 @@
     \caption{Ανάλυση του \src{SimpleEQ} μέσα από το \en{Ardour}. Φαίνεται η απόκριση συχνότητας (άσπρο) και η απόκριση φάσης (κόκκινο).}
     \label{fig:ardour_analysis}
 \end{figure}
+
 
 \newpage
 
