@@ -10,6 +10,66 @@
 #include "PluginEditor.h"
 
 //==============================================================================
+
+CustomRotarySlider::CustomRotarySlider()
+{
+    setSliderStyle (juce::Slider::SliderStyle::RotaryHorizontalDrag);
+    setTextBoxStyle (juce::Slider::TextBoxBelow, true, 0, 0);
+    setLookAndFeel (&customLookAndFeel);
+    setColour (juce::Slider::rotarySliderFillColourId, blue);
+    setColour (juce::Slider::textBoxTextColourId, blackGrey);
+    setColour (juce::Slider::textBoxOutlineColourId, grey);
+    setVelocityBasedMode (true);
+    setVelocityModeParameters (0.5, 1, 0.09, false);
+    setRotaryParameters (juce::MathConstants<float>::pi * 1.25f,
+                         juce::MathConstants<float>::pi * 2.75f,
+                         true);
+    setWantsKeyboardFocus (true);
+}
+
+CustomRotarySlider::~CustomRotarySlider()
+{
+    setLookAndFeel(nullptr);
+}
+
+void CustomRotarySlider::paint (juce::Graphics& g)
+{
+    juce::Slider::paint (g);
+
+    if (hasKeyboardFocus (false))
+    {
+        auto length = getHeight() > 15 ? 5.0f : 4.0f;
+        auto thick  = getHeight() > 15 ? 3.0f : 2.5f;
+
+        g.setColour (findColour (juce::Slider::textBoxOutlineColourId));
+
+        //          fromX       fromY        toX                  toY
+        g.drawLine (0,          0,           0,                   length,               thick);
+        g.drawLine (0,          0,           length,              0,                    thick);
+        g.drawLine (0,          getHeight(), 0,                   getHeight() - length, thick);
+        g.drawLine (0,          getHeight(), length,              getHeight(),          thick);
+        g.drawLine (getWidth(), getHeight(), getWidth() - length, getHeight(),          thick);
+        g.drawLine (getWidth(), getHeight(), getWidth(),          getHeight() - length, thick);
+        g.drawLine (getWidth(), 0,           getWidth() - length, 0,                    thick);
+        g.drawLine (getWidth(), 0,           getWidth(),          length,               thick);
+    }
+}
+
+void CustomRotarySlider::mouseDown (const juce::MouseEvent& event)
+{
+    juce::Slider::mouseDown (event);
+
+    // setMouseCursor (juce::MouseCursor::NoCursor);
+}
+
+void CustomRotarySlider::mouseUp (const juce::MouseEvent& event)
+{
+    juce::Slider::mouseUp (event);
+
+    // juce::Desktop::getInstance().getMainMouseSource().setScreenPosition (event.source.getLastMouseDownPosition());
+    // setMouseCursor (juce::MouseCursor::NormalCursor);
+}
+
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
     peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
@@ -19,16 +79,26 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcess
     highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider)
 
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    
+    setWantsKeyboardFocus (true);
+
+    juce::LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypefaceName ("Source Code Pro");
+
+    peakFreqLabel.setText("peak (Hz)", juce::NotificationType::dontSendNotification);
+    peakFreqLabel.attachToComponent(&peakFreqSlider, false);
+    lowCutFreqLabel.setText("high (Hz)", juce::NotificationType::dontSendNotification);
+    lowCutFreqLabel.attachToComponent(&lowCutFreqSlider, false);
+    highCutFreqLabel.setText("low (Hz)", juce::NotificationType::dontSendNotification);
+    highCutFreqLabel.attachToComponent(&highCutFreqSlider, false);
+
     addAndMakeVisible(peakFreqSlider);
     addAndMakeVisible(peakGainSlider);
     addAndMakeVisible(peakQualitySlider);
     addAndMakeVisible(lowCutFreqSlider);
     addAndMakeVisible(highCutFreqSlider);
 
-    setSize (600, 400);
+    setLookAndFeel(&customLookAndFeel);
+
+    setSize (500, 250);
 }
 
 SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor()
@@ -39,27 +109,24 @@ SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor()
 void SimpleEQAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll (juce::Colours::black);
+    g.setFont (30);
+    g.setColour (juce::Colours::white);
+    g.drawText ("Simple EQ", 150, 0, getWidth(), getHeight() / 2, juce::Justification::centred);
 }
 
 void SimpleEQAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
 
-    float spec_ratio = 0.33;
+    float y_gap = 70;
+    float y_begin = 30;
+    float size = 70;
+    float size_small = 50;
 
-    auto bounds = getLocalBounds();
-    auto responseArea = bounds.removeFromTop(bounds.getHeight() * spec_ratio);
-
-    auto lowCutArea = bounds.removeFromLeft(bounds.getWidth() * spec_ratio);
-    auto highCutArea = bounds.removeFromRight(bounds.getWidth() * 0.5);
-
-    lowCutFreqSlider.setBounds(lowCutArea);
-    highCutFreqSlider.setBounds(highCutArea);
-
-    peakFreqSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * spec_ratio));
-    peakGainSlider.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.5));
-    peakQualitySlider.setBounds(bounds);
+    lowCutFreqSlider.setBounds (30, y_begin, size, size);
+    peakFreqSlider.setBounds (125, y_begin, size, size);
+    peakGainSlider.setBounds (125, y_begin + y_gap, size, size);
+    peakQualitySlider.setBounds (125, y_begin + y_gap * 2, size, size);
+    highCutFreqSlider.setBounds (220, y_begin, size, size);
 
 }

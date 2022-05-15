@@ -5,6 +5,10 @@
               cppLanguageStandard="17">
   <MAINGROUP id="Xvm7UK" name="SimpleEQ">
     <GROUP id="{7C76717A-9706-48C4-53CE-D58A51CA9A89}" name="Source">
+      <FILE id="huebmW" name="CustomLookAndFeel.cpp" compile="1" resource="0"
+            file="Source/CustomLookAndFeel.cpp"/>
+      <FILE id="oeCPeu" name="CustomLookAndFeel.h" compile="0" resource="0"
+            file="Source/CustomLookAndFeel.h"/>
       <FILE id="yWZTay" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="ppyNBK" name="PluginProcessor.h" compile="0" resource="0"
