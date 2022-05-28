@@ -14,6 +14,7 @@
 \newcommand{\z}{\mathpzc{z}}
 
 \crefname{equation}{εξ.}{εξ.}
+\crefname{listing}{καταχώριση}{καταχώριση}
 
 \makeindex
 
@@ -35,6 +36,14 @@
 \begin{abstract}
     Στα πλαίσια αυτής της εργασίας γίνεται ο σχεδιασμός και υλοποίηση 
     ενός ισοσταθμιστή ήχου. 
+    Η ανάπτυξή του συστήματος ψηφιακής επεξεργασίας σήματος, όπως 
+    και η γραφική διεπαφή έγιναν μέσα στο περιβάλλον του 
+    \en{JUCE Framework} χρησιμοποιώντας τη γλώσσα \en{C++}. 
+    Στην εργασία αυτή γίνεται η ανάλυση της θεωρίας πίσω από την ανάπτυξη των φίλτρων, 
+    την υλοποίηση του συστήματος από το χαμηλό έως το υψηλό επίπεδο αφαιρετικότητας που 
+    προσφέρει το πακέτο \en{JUCE}. 
+    Τέλος, υπάρχει ανάλυση των επιδόσεων του φίλτρου όπως και μία σύντομη αναφορά πάνω 
+    στην ευκολία χρήσης του.
 \end{abstract}
 
 
@@ -151,102 +160,26 @@
 του στα προηγούμενα δείγματα. Στην περίπτωση ενός φίλτρου 2ης τάξης 
 αρκεί να αποθηκεύουμε τις δύο (2) προηγούμενες τιμές εξόδου του.
 
+Η υλόποιση σε κώδικα όπως φαίνεται στην \cref{lst:iirimp} ταυτίζεται με τη σχηματική 
+αναπαράσταση. Η βιβλιοθήκη \src{JUCE} έχει προνοήσει για τη χρήση τον ρουτίνων 
+της με αριθμητικούς τύπους διαφορετικής ακρίβειας, εξού και η άπλετη χρήση της 
+λέξης-κλειδί \src{auto} \cite{CppReferenceAuto}, η οποία αναθέτει στον \en{compiler} το συμπέρασμα του τύπου 
+της εκάστοτε μεταβλητής.
+
 \vspace{5mm}
 
 \begin{figure}
 \centering
-\begin{tikzpicture}
-
-	% Place nodes using a matrix
-    \matrix (m1) [row sep=5mm, column sep=9mm]
-    {
-        \node[dspnodeopen, dsp/label=above] (x) {$x[n]$}     ; &
-		\node[dspnodefull]                 (m11) {}          ; &
-        \node[dspmixer, dsp/label=above]    (b0) {$b_0$}     ; &
-        \node[dspadder]                     (adder) {}       ; &
-		\node[coordinate]                   (m12) {}         ; &
-		\node[dspnodefull]                   (m13) {}        ; &
-        \node[dspnodeopen, dsp/label=above] (y) {$y[n]$}     ; &
-        \\
-        \node[coordinate]                   (mc) {}          ; &
-		\node[dspsquare]                   (z01) {$\z^{-1}$} ; &
-        \node[coordinate]                   (mc) {}          ; &
-        \node[coordinate]                   (mc) {}          ; &
-        \node[coordinate]                   (mc) {}          ; &
-		\node[dspsquare]                   (z02) {$\z^{-1}$} ; &
-        \\
-        \node[coordinate]                   (mc) {}          ; &
-        \node[dspnodefull]                   (m31) {}        ; &
-        \node[dspmixer, dsp/label=above]    (b1) {$b_1$}     ; &
-        \node[coordinate]                   (mc) {}          ; &
-        \node[dspmixer, dsp/label=above]    (a1) {$-a_1$}    ; &
-        \node[dspnodefull]                   (m32) {}        ; &
-        \\
-        \node[coordinate]                   (mc) {}          ; &
-		\node[dspsquare]                   (z11) {$\z^{-1}$} ; &
-        \node[coordinate]                   (mc) {}          ; &
-        \node[coordinate]                   (mc) {}          ; &
-        \node[coordinate]                   (mc) {}          ; &
-		\node[dspsquare]                   (z12) {$\z^{-1}$} ; &
-        \\
-        \node[coordinate]                   (mc) {}          ; &
-        \node[dspnodefull]                   (m51) {}        ; &
-        \node[dspmixer, dsp/label=above]    (b2) {$b_2$}     ; &
-        \node[coordinate]                   (mc) {}          ; &
-        \node[dspmixer, dsp/label=above]    (a2) {$-a_2$}    ; &
-        \node[dspnodefull]                   (m52) {}        ; &
-        \\
-    }                                                        ;
-
-	% Draw connections
-
-	\begin{scope}[start chain]
-		\chainin (x);
-		\chainin (m11) [join=by dspline];
-		\chainin (b0) [join=by dspline];
-		\chainin (adder) [join=by dspconn];
-		\chainin (m13) [join=by dspconn];
-		\chainin (y) [join=by dspconn];
-	\end{scope}
-
-	\begin{scope}[start chain]
-		\chainin (m11);
-		\chainin (z01) [join=by dspconn];
-		\chainin (m31) [join=by dspconn];
-		\chainin (b1) [join=by dspconn];
-		\chainin (adder) [join=by dspconn];
-	\end{scope}
-
-	\begin{scope}[start chain]
-		\chainin (m31);
-		\chainin (z11) [join=by dspconn];
-		\chainin (m51) [join=by dspconn];
-		\chainin (b2) [join=by dspconn];
-		\chainin (adder) [join=by dspconn];
-	\end{scope}
-
-	\begin{scope}[start chain]
-		\chainin (m13);
-		\chainin (z02) [join=by dspconn];
-		\chainin (m32) [join=by dspconn];
-		\chainin (a1) [join=by dspconn];
-		\chainin (adder) [join=by dspconn];
-	\end{scope}
-
-	\begin{scope}[start chain]
-		\chainin (m32);
-		\chainin (z12) [join=by dspconn];
-		\chainin (m52) [join=by dspconn];
-		\chainin (a2) [join=by dspconn];
-		\chainin (adder) [join=by dspconn];
-	\end{scope}
-	
-\end{tikzpicture}
-
+    \input{IIR.tex}
 \caption{Υλοποίηση του \en{IIR} φίλτρου}
 \label{fig:iir_filter_block}
 
 \end{figure}
+
+\begin{minipage}{\textwidth}
+    \lstcode[lst:iirimp]{./assets/src/iir.cpp}{C++}{Ο υπολογισμός της νέας τιμής για το κάθε δείγμα σε \src{C++}}
+\end{minipage}
+
 
 \paragraph{Γραφική Διεπαφή}
 
@@ -254,7 +187,7 @@
 the development time. The remaining 10 percent of the code accounts for the
 other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 
-Η βιβλιοθήκη \en{Juce} παρέχει τη δυνανότητα να αναπτύξει ο χρήστης 
+Η βιβλιοθήκη \en{JUCE} παρέχει τη δυνανότητα να αναπτύξει ο χρήστης 
 σύνθετες γραφικές διεπαφές μέσα από τις οποίες μπορεί κάποιος να ελέγχει 
 το \en{DSP} μέρος της εφαρμογής (συχνότητες αποκοπής κτλ).
 
@@ -262,7 +195,7 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
     \centering
     \includegraphics[width=0.8\textwidth]{./assets/GUI.png}
     \caption{Η τελική γραφική διεπαφή του ισοσταθμιστή.}
-    \label{fig:}
+    \label{fig:finalgui}
 \end{figure}
 
 \paragraph{Χρήση}
@@ -281,10 +214,18 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 στον υπολογιστή μας, μέσα από κάποιο \en{plugin} και τελικά να έχουμε την έξοδο 
 στα ηχεία (ή οποιαδήποτε άλλη συσκευή).
 
+Πιο συνιθέστερη όμως θα είναι η χρήση του \en{plugin} μέσα από ένα λογισμικό 
+\en{DAW (Digital Audio Workstation)}, όπου μπορούμε να φορτώσουμε δυναμικά 
+το \src{Simple EQ}, να προσθέσουμε σε ένα από τα κομμάτια του \en{mixer} 
+και έτσι όποιος ήχος περνάει σε εκείνο το κανάλι θα επεξεργάζεται από τον \en{plugin}. 
+
+Η βιβιοθήκη \src{JUCE} προσφέρει συστήματα για το χτήσιμο του κώδικα 
+ως \en{plugin (VST3)} \cite{VSTWiki}, ή ως αυτόνομη εφαρμογή.  
+
 \paragraph{Μετρήσεις}
 
 Μετά τη δημιουργία της εφαρμογής ισοστάθμισης, έγινε εισαγωγή του \en{plugin} 
-\src{SimpleEQ} στο περιβάλλον επεξεργασίας ψηφιακού ήχου (\en{DAW}) \en{Ardour}, 
+\src{SimpleEQ} στο ψηφιακό περιβάλλον επεξεργασίας ήχου (\en{DAW}) \en{Ardour}, 
 το οποίο λειτουργεί σαν υποδοχέας και παρέχει δυνατότητες μέτρησης της απόκρισης συχνότας και 
 φάσης του φίλτρου (\cref{fig:ardour_analysis}).
 
@@ -293,6 +234,32 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
     \includegraphics[width=0.8\textwidth]{./assets/PluginAnalysisArdour.png}
     \caption{Ανάλυση του \src{SimpleEQ} μέσα από το \en{Ardour}. Φαίνεται η απόκριση συχνότητας (άσπρο) και η απόκριση φάσης (κόκκινο).}
     \label{fig:ardour_analysis}
+\end{figure}
+
+Για μερικές ακόμα μετρήσεις χρησιμοποιήθηκε το τραγούδι \en{Bring Me the Disco King - David Bowie} 
+το οποίο περάσαμε μέσα από \src{Simple EQ}. 
+
+Όλα τα αρχεία τα οποία μελετάμε είναι κωδικοποιημένα σε μορφή \en{WAV 16-bit} με συχνότητα δειγματοληψίας $48kHz$.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{./assets/session.png}
+    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscordKing.wav} χωρίς εφαρμογή του \en{plugin}.}
+    \label{fig:sessionanalysis}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{./assets/session_1000_lp.png}
+    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscordKing.wav} με εφαρμογή χαμηλοπερατού φίλτρου στα $1000Hz$.}
+    \label{fig:sessionanalysislp1000}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{./assets/session_1000_hp.png}
+    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscordKing.wav} με εφαρμογή υψιπερατού φίλτρου στα $1000Hz$.}
+    \label{fig:sessionanalysishp1000}
 \end{figure}
 
 

@@ -6,6 +6,7 @@
 \usepackage[T1]{fontenc} % Use 8-bit encoding
 
 \usepackage[english, greek]{babel} % English language hyphenation
+\usepackage{alphabeta}
 
 \usepackage{graphicx} % Required for inserting images
 \graphicspath{{Figures/}{./}} % Specifies where to look for included images (trailing slash required)
@@ -52,10 +53,10 @@
 }
 
 
-\newcommand{\lstcode}[3]
+\newcommand{\lstcode}[4][]
 {
     \begin{otherlanguage}{english}
-    \lstinputlisting[language=#2, frame=single, style=code, caption=#3]{#1}
+        \lstinputlisting[language=#3, frame=single, style=code, caption={#4}, label={#1}]{#2}
     \end{otherlanguage}
 }
 
@@ -79,3 +80,4 @@
 \newcommand{\tg}[1]{\textgreek{#1}}
 \newcommand{\lat} {\latintext} 
 \newcommand{\gre}{\greektext}
+
