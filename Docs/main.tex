@@ -6,6 +6,8 @@
 \usepackage{cleveref}
 \usepackage{epigraph} 
 \modulolinenumbers[5]
+\usepackage{caption}
+\usepackage{subcaption}
 
 \usetikzlibrary{positioning}
 \usetikzlibrary{dsp,chains}
@@ -20,18 +22,39 @@
 
 \bibliographystyle{ieeetr}
 
+\newcommand{\filterspectrums}[2]
+{
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{#1.png}
+         \caption{Φασματογράφημα του αρχείου.}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{#1_spectrum.png}
+         \caption{Το φάσμα (πράσινο).}
+     \end{subfigure}
+     \hfill
+        \caption{#2}
+        % \label{fig:sus}
+\end{figure}
+}
+
 \begin{document}
 
 \begin{titlepage}
 
 \title{Σχεδιασμός και υλοποίηση ψηφιακού ισοσταθμιστή ήχου.}
-% \tnotetext[mytitlenote]{Fully documented templates are available in the elsarticle package on \href{http://www.ctan.org/tex-archive/macros/latex/contrib/elsarticle}{CTAN}.}
 
 %% Group authors per affiliation:
 \author{Ευάγγελος Λάμπρου}
 \date{}
 
 \maketitle
+
 
 \begin{abstract}
     Στα πλαίσια αυτής της εργασίας γίνεται ο σχεδιασμός και υλοποίηση 
@@ -46,6 +69,7 @@
     στην ευκολία χρήσης του.
 \end{abstract}
 
+% \tableofcontents
 
 \end{titlepage}
 
@@ -82,7 +106,7 @@
     \caption{Βασική δομή του \en{plugin}.} 
 \end{figure}
 
-\paragraph{Θεωρία \en{IIR} φίλτρων}
+\subsection{Θεωρία \en{IIR} φίλτρων}
 
 Στην εργασία αυτή θα περιοριστούμε στην υλοποίηση φίλτρων 2ης τάξης, με τους 
 αλγόριθμους όμως να είναι ικανούς να παράγουν φίλτρα οσοδήποτε μεγάλης τάξης (χωρίς 
@@ -106,6 +130,22 @@
 
 \paragraph{Φίλτρα \en{Butteworth}} 
 
+Επιλέξαμε το φίλτρο \en{Butterworth} σχεδόν αυθαίρετα. Ωστόσο, το φίλτρο 
+έχει ορσιμένες ιδιότητες που το κάνουν θεμιτό στα πλαίσια επεξεργασίας ήχου.
+Αρχικά, τα φίλτρα αυτά δεν έχουν \en{ripple} κοντά στη συχνότητα αποκοπής 
+και έτσι δεν υπάρχει ενίσχυση καμίας συχνότητας. Ακόμα, 
+έχουν πιο αργή αποκοπή ($-6n db/οκτάβα$, όπου $n$ η τάξη του φίλτρου). 
+Αυτό σε εφαρμογές ήχου είναι πολλές φορές θεμιτό μιας και δίνει σαν αποτέλεσμα ένα πιο μαλακό 
+κόψιμο των συχνοτήτων. Συνύθως δεν θέλουμε να διώξουμε ολοκληρωτικά τις αρμονικές 
+από κάποιο όργανο.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./assets/comparison_filters.png}
+    \caption{Σύγκριση φίλτρου \en{Butterworth} με άλλα φίλτρα.}
+    \label{fig:}
+\end{figure}
+
 Για τους συντελεστές του φίλτρου \en{Butterworth} μπορούμε απλά να υπολογίσουμε την τιμή 
 της σταθεράς $Q$ και να πάρουμε τους συντελεστές από την \cref{eq:h_lowpassfilter} \cite{OpenheimAlan, JuceDocumentation}
 
@@ -128,6 +168,8 @@
     b_0 &= 1 & b_1 &= \frac{2(K^2 - 1)}{K^2 + K/Q + 1} & b_2 &= \frac{K^2 - K/Q + 1}{K^2 + K/Q + 1}
 \end{align}
 
+Ένα φίλτρο \en{Butteworth} 1ης τάξης έχει αποκοπή $-6dB/octave$, 2ης τάξης έχει αποκοπή $-12dB/octave$, ένα 3ης τάξης $-18dB/octave$ κοκ.
+
 \section{Υλοποίηση}
 
 Για την υλοποίηση του φίλτρου χρησιμοποιήθηκαν οι βιβλιοθήκες του πακέτου 
@@ -148,21 +190,88 @@
     \item Ένα υψηπερατό φίλτρο
 \end{enumerate}
 
+\begin{figure}[htpb]
+
+    \begin{center}
+
+        \begin{tikzpicture}[node distance=3.0cm]
+
+        % Controller
+
+        \node [draw,
+        fill=Purple,
+        minimum width=1cm,
+        minimum height=1.1cm,
+            ] (lp) {$LP Filter$};
+
+        \node [draw,
+        fill=White,
+        minimum width=1cm,
+        minimum height=1.1cm,
+        left of = lp
+            ] (in) {$Source$};
+
+        \node [draw,
+        fill=Purple,
+        minimum width=1cm,
+        minimum height=1.1cm,
+            ] (lp) {$LP Filter$};
+
+        \node [draw,
+        fill=Yellow,
+        minimum width=1cm,
+        minimum height=1.1cm,
+            right of = lp] (pf) {$Peak Filter$};
+
+        \node [draw,
+        fill=Green,
+        minimum width=1cm,
+        minimum height=1.1cm,
+            right of = pf] (hp) {$HP Filter$};
+
+        \node [draw,
+        fill=White,
+        minimum width=1cm,
+        minimum height=1.1cm,
+        right of = hp
+            ] (out) {$Output$};
+
+        \draw[->] (in) -- (lp) 
+            node[midway,above]{$audio_{in}$};
+        \draw[->] (lp) --  (pf);
+        \draw[->] (pf) --  (hp);
+
+        \draw[->] (hp) -- (out) 
+            node[midway,above]{$audio_{out}$};
+
+        \end{tikzpicture}
+    \end{center}
+
+    \caption{Βασική δομή του \en{plugin}.} 
+\end{figure}
+
 Ο τρόπος με τον οποίο αυτό περιγράφεται στον κώδικα είναι μέσω της δομής 
 \src{ProcessorChain} η οποία αναπαριστά μία αλυσιδά επεξεργαστών. 
 Κατά την εκτέλεση της εφαρμογής, η ακολουθία από δείγματα
 περνάει από την ρουτίνα επεξεργασίας του κάθε φίλτρου διαδοχικά. \cite{JuceDocumentation}
+
+Στην περίπτωση που θέλαμε να έχουμε φίλτρο με πιο απότομη καμπύλη αποκοπής
+συχνοτήτων (\en{slope}), θα μπορούσαμε να βάλουμε σε σειρά στο
+\src{ProcessorChain} περισσότερα φίλτρα σε σειρά. Έτσι, ανάλογα με την καμπύλη
+που θέλαμε θα μπορούσαμε να θέτουμε σε πέρασμα (\en{passthrough}) όλα τα
+επίπεδα της αλυσίδας επεξεργασίας και να ενεργοποιούσαμε τον κατάλληλο αριθμό
+από φίλτρα σε σειρά ανάλογα με το πόσο \say{απότομη} θα έπρεπε να είναι η καμπύλη.
 
 Ο υπολογισμός της νέας αριθμητικής τιμής του κάθε δείγματος γίνεται με 
 τη σειρά που φαίνεται στη \cref{fig:iir_filter_block}. 
 Η καθυστέρηση του σήματος εισόδου γίνεται εφόσων το \en{plugin}
 αποθηκεύει την κατάστασή του, η οποία είναι ένας πίνακας με τις τιμές της εξόδου 
 του στα προηγούμενα δείγματα. Στην περίπτωση ενός φίλτρου 2ης τάξης 
-αρκεί να αποθηκεύουμε τις δύο (2) προηγούμενες τιμές εξόδου του.
+αρκεί να αποθηκεύουμε τις δύο προηγούμενες τιμές εξόδου του.
 
 Η υλόποιση σε κώδικα όπως φαίνεται στην \cref{lst:iirimp} ταυτίζεται με τη σχηματική 
 αναπαράσταση. Η βιβλιοθήκη \src{JUCE} έχει προνοήσει για τη χρήση τον ρουτίνων 
-της με αριθμητικούς τύπους διαφορετικής ακρίβειας, εξού και η άπλετη χρήση της 
+της με αριθμητικούς τύπους διαφορετικής ακρίβειας, εξού και η χρήση της 
 λέξης-κλειδί \src{auto} \cite{CppReferenceAuto}, η οποία αναθέτει στον \en{compiler} το συμπέρασμα του τύπου 
 της εκάστοτε μεταβλητής.
 
@@ -180,6 +289,14 @@
     \lstcode[lst:iirimp]{./assets/src/iir.cpp}{C++}{Ο υπολογισμός της νέας τιμής για το κάθε δείγμα σε \src{C++}}
 \end{minipage}
 
+Αξίζει να σημειωθεί πως στον πυρήνα του ένα οποιοδήποτε \en{plugin} επεξεργασίας 
+ήχου είναι είναι ένα σύνολο από προσθέσεις, πολλαπλασιασμούς και καθυστερήσεις. 
+Σε γενικές γραμμές, η υλοποίηση των περισσότερων 
+αλγορίθμων δεν είναι αξιοσημείωτη, περά από πιθανές βελτιστοποιήσεις με τη χρήση παραλληλισμού. 
+
+Σαφώς, βιβλιοθήκες όπως η \en{JUCE} φροντίζουν στην καλύτερη δυνατή υλοποίηση, 
+αφού δεν υπάρχουν κατά το δυνατόν περιτές πράξεις και γίνεται προσπάθεια 
+στη βελτιστοποίηση του κώδικα από τη φάση της μετάφρασης (\en{compilation}).
 
 \paragraph{Γραφική Διεπαφή}
 
@@ -191,12 +308,27 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 σύνθετες γραφικές διεπαφές μέσα από τις οποίες μπορεί κάποιος να ελέγχει 
 το \en{DSP} μέρος της εφαρμογής (συχνότητες αποκοπής κτλ).
 
+Έχουμε στη διάθεση μας πολλές επιλογές όσων αφορά την εμφάνιση της εφαρμογής. 
+Η παρουσίαση έχει πολλά να κάνει και με την ευχρηστεία της εφαρμογής. 
+Ελπίζουμε η απλή διεπαφή να συμβάλει σε αυτό το σκοπό. 
+
+Είναι άξιο αναφοράς πως σε γραμμές κώδικα, η γραφική διεπαφή χρειάστηκε 
+περισσότερη συγγραφή σε σχέση με τον επεξεργαστή συμάτων. 
+Αυτό δεν είναι βέβαια σίγουρο αν είναι πρωτέρημα ή όχι της βιβλιοθήκης.
+
 \begin{figure}[htpb]
     \centering
     \includegraphics[width=0.8\textwidth]{./assets/GUI.png}
     \caption{Η τελική γραφική διεπαφή του ισοσταθμιστή.}
     \label{fig:finalgui}
 \end{figure}
+
+Στην τελική εφαρμογή υπάρχουν πέντε \en{knobs}:
+
+\begin{itemize}
+    \item Δύο για τον έλεγχο του υψιπερατού και του χαμηλοπερατού φίλτρου.
+    \item Τρία για την επιλογή της \en{peak} συχνότητας, του \en{gain} το οποίο θα λάβει και του πάχους της καμπύλης, αντίστοιχα.
+\end{itemize}
 
 \paragraph{Χρήση}
 
@@ -219,10 +351,10 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 το \src{Simple EQ}, να προσθέσουμε σε ένα από τα κομμάτια του \en{mixer} 
 και έτσι όποιος ήχος περνάει σε εκείνο το κανάλι θα επεξεργάζεται από τον \en{plugin}. 
 
-Η βιβιοθήκη \src{JUCE} προσφέρει συστήματα για το χτήσιμο του κώδικα 
+Η βιβιοθήκη \src{JUCE} προσφέρει συστήματα για το χτήσιμο (\en{build}) του κώδικα 
 ως \en{plugin (VST3)} \cite{VSTWiki}, ή ως αυτόνομη εφαρμογή.  
 
-\paragraph{Μετρήσεις}
+\section{Μετρήσεις}
 
 Μετά τη δημιουργία της εφαρμογής ισοστάθμισης, έγινε εισαγωγή του \en{plugin} 
 \src{SimpleEQ} στο ψηφιακό περιβάλλον επεξεργασίας ήχου (\en{DAW}) \en{Ardour}, 
@@ -236,6 +368,18 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
     \label{fig:ardour_analysis}
 \end{figure}
 
+Γίνεται φανερό από την απόκριση του φίλτρου πως η αποκοπή 
+είναι \say{μαλακή} (\en{soft-cut}). 
+
+\paragraph{Μετρήσεις με \en{White Noise}}
+Έπειτα, εφαρμόσαμε λευκό θόρυβο και αναλύσαμε το τελικό αρχείο ήχου.
+
+\filterspectrums{./assets/WhiteNoise}{Το σήμα λευκού θορύβου χωρίς φίλτρο.}
+\filterspectrums{./assets/WhiteNoiseLP}{Το σήμα λευκού θορύβου με εφαρμογή χαμηλοπερατού φίλτρου στα $1000Hz$.}
+\filterspectrums{./assets/WhiteNoiseHP}{Το σήμα λευκού θορύβου με εφαρμογή υψιπερατού φίλτρου στα $1000Hz$.}
+
+Μία παρατήρηση είναι πως στην περίπτωση του υψιπερατού φίλτρου, οι υψηλές συχνότητες 
+
 Για μερικές ακόμα μετρήσεις χρησιμοποιήθηκε το τραγούδι \en{Bring Me the Disco King - David Bowie} 
 το οποίο περάσαμε μέσα από \src{Simple EQ}. 
 
@@ -243,22 +387,22 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.5\textwidth]{./assets/session.png}
-    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscordKing.wav} χωρίς εφαρμογή του \en{plugin}.}
+    \includegraphics[width=\textwidth]{./assets/session.png}
+    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscoKing.wav} χωρίς εφαρμογή του \en{plugin}.}
     \label{fig:sessionanalysis}
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.5\textwidth]{./assets/session_1000_lp.png}
-    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscordKing.wav} με εφαρμογή χαμηλοπερατού φίλτρου στα $1000Hz$.}
+    \includegraphics[width=\textwidth]{./assets/session_1000_lp.png}
+    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscoKing.wav} με εφαρμογή χαμηλοπερατού φίλτρου στα $1000Hz$.}
     \label{fig:sessionanalysislp1000}
 \end{figure}
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.5\textwidth]{./assets/session_1000_hp.png}
-    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscordKing.wav} με εφαρμογή υψιπερατού φίλτρου στα $1000Hz$.}
+    \includegraphics[width=\textwidth]{./assets/session_1000_hp.png}
+    \caption{Ανάλυση του αρχείο \src{BringMetTheDiscoKing.wav} με εφαρμογή υψιπερατού φίλτρου στα $1000Hz$.}
     \label{fig:sessionanalysishp1000}
 \end{figure}
 
