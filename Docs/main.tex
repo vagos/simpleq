@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[12pt]{extarticle}
 
 \input{structure.tex}
 \usepackage{lineno}
@@ -8,6 +8,7 @@
 \modulolinenumbers[5]
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage[margin=0.5in]{geometry}
 
 \usetikzlibrary{positioning}
 \usetikzlibrary{dsp,chains}
@@ -32,11 +33,11 @@
          \caption{Φασματογράφημα του αρχείου.}
      \end{subfigure}
      \hfill
-     \begin{subfigure}[b]{\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{#1_spectrum.png}
-         \caption{Το φάσμα (πράσινο).}
-     \end{subfigure}
+     % \begin{subfigure}[b]{\textwidth}
+     %     \centering
+     %     \includegraphics[width=\textwidth]{#1_spectrum.png}
+     %     \caption{Το φάσμα (πράσινο).}
+     % \end{subfigure}
      \hfill
         \caption{#2}
         % \label{fig:sus}
@@ -75,15 +76,84 @@
 
 \linenumbers
 
+\section{Εισαγωγή}
+
+\subsection{Στόχοι} 
+Τελικός στόχος της εργασίας είναι η δημιουργία ενός ψηφιακού ισοσταθμιστή. 
+Μία τέτοια εφαρμογή μπορεί να απλοποιηθεί ως ένα φίλτρο. Προφανώς, 
+το φίλτρο αυτό θα είναι ψηφιακό και θα πρέπει να δέχεται ως είσοδο διακριτές 
+τιμές οι οποίες θα είναι δείγματα ήχου. 
+Η επεξεργασία των σημάτων αυτών πρέπει να γίνεται σε πραγματικό χρόνο. 
+Αυτή η ιδιότητα ίσως να μην είναι υποχρεωτική, εφόσων ο χρήστης 
+θα μπορούσε απλά να εισάγει ένα αρχείο ήχου στο φίλτρο μας και να παίρνει ένα 
+άλλο αρχείο πίσω. Τότε, ο χρόνος επεξεργασίας θα μπορούσε να είναι αρκετά 
+μεγάλος (εντός λογικών ορίων). 
+Ωστόσο, στόχος μας είναι η ανάπτυξη μιας εφαρμογής που θα μπορεί να χρησιμοποιηθεί 
+εντός ενός περιβάλλοντος δημιουργίας μουσικής. Εκεί, η επεξεργασία του σήματος σε πραγματικό 
+χρόνο είναι απαραίτητη μιας και ο χρήστης θα χρειάζεται να ακούει το αποτέλεσμα της επεξεργασίας 
+ενώ δουλεύει. Ακόμα, θα πρέπει να μπορεί να αλλάζει τα χαρακτηριστικά του φίλτρου ενώ αυτό δουλεύει.
+Ο τρόπος με τον οποίο θα αλλάζουν οι ιδιότητες του φίλτρου είναι μέσω μίας γραφικής διεπαφής η οποία 
+επίσης πρέπει να υλοποιηθεί.
+
+\subsection{Αντίστοιχες Εφαρμογές}
+
+Η ιδέα για την υλοποίηση ενός φίλτρου δεν είναι καινούρια. Υπάρχουν ήδη 
+πολλές υλοποιήσεις. Στο σημείο αυτό θα κάνουμε μία σύντομη 
+παρουσίαση μερικών άλλων \en{filter plugins} \footnote{
+Όσα λογισμικά αναφερθούν είναι ανοιχτού κώδικα και είναι διαθέσιμα σε κάθε κύρια πλατφόρμα.
+}, επισημαίνοντας ορισμένα τους 
+αξιοσημείωτα χαρακτηριστικά.
+
+
+\subsubsection{\en{LSP Parametric Equalizer}}
+
+Η οικογένεια \en{plugins} των \en{LSP (Linux Studio PLugins)} είναι 
+πολύ δημοφιλή στους κύκλους των μουσικών σε πλατφόρμες \en{GNU/Linux}. 
+Στην περίπτωση αυτού του φίλτρου \cite{LSPEQ}, ο χρήστης έχει μπορστά του μία 
+πολύ σύνθετη διεπαφή, μέσω της οποίας μπορεί να κόψει ή να αυξήσει συχνότητες σε 
+16 διαφορετικά σημεία του φάσματος.
+Ακόμα, υπάρχει οπτικοποίηση του σήματος
+πριν και μετά το φίλτρο με \en{FFT}. Ακόμα, δίνεται 
+η δυνατότητα επιλογής μεταξύ \en{IIR, FIR} φίλτρου.
+
+Στόχος του \en{plugin} δεν είναι ο χρωματιστός του ήχου άλλα 
+η διόρθωση του σήματος στο πεδίο της συχνότητας. Κάποιος μπορεί 
+να επιλέξει το ακριβές είδος φιλτραρίσματος μεταξύ επιλογών 
+όπως \en{Bell Filter, Resonance Filter, Billinear Transform Filter (BT), Match Z Transform (MZ) Filter} κ.α.
+Στις οδηγίες χρήσης της εφαρμογής δίνονται οδηγίες σχετικά με σενάρια στα οποία υπερτερεί το κάθε 
+είδος φίλτρου όταν εφαρμόζεται κατά την ισοστάθμιση.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=.8\textwidth]{./assets/lsp_eq.png}
+    \caption{Στιγμιότυπο του \en{LSP Parametric Equalizer}}
+    \label{fig:}
+\end{figure}
+
+\subsubsection{\en{Calf Equalizer}}
+
+Η οικογένεια των \en{Calf} \cite{Calf} \en{plugins} αποτελεί επίσης μία πολύ 
+δημολιφής επιλογή στον κόσμο των \en{plugins} ανοιχτού κώδικα. 
+Η γραφική διεπαφή κρατάει τα απαραίτητα ώστε να γίνει 
+λεπτομερής επεξεργασία του φάσματος, χωρίς όμως να προσφέρει εξαντλητικές 
+επιλογές. Ωστόσο, η πιο απλοϊκή εμφάνιση ίσως να το κάνει 
+καταλληλότερο για καθημερινή χρήση στα πλαίσια παραγωγής μουσικής.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./assets/calf.png}
+    \caption{Στιγμιότυπο του \en{Calf Equalizer}}
+    \label{fig:}
+\end{figure}
+
+
+
 \section{Σχεδιασμός}
 
-\begin{figure}[htpb]
+\begin{figure}[!htb]
 
     \begin{center}
-
         \begin{tikzpicture}
-
-        % Controller
 
         \node [draw,
         fill=Goldenrod,
@@ -91,9 +161,6 @@
         minimum height=1.2cm,
         right=1cm
             ] (dsp) {$DSP$};
-
-        \draw[->] ++(-1,0) -- (dsp.west) 
-            node[midway,above]{$audio_{in}$};
 
         \draw[->] ++(-1,0) -- (dsp.west) 
             node[midway,above]{$audio_{in}$};
@@ -330,14 +397,144 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
     \item Τρία για την επιλογή της \en{peak} συχνότητας, του \en{gain} το οποίο θα λάβει και του πάχους της καμπύλης, αντίστοιχα.
 \end{itemize}
 
+Ο έλεγχος του \en{DSP} μέσω της διεπαφής γίνεται μέσα από την ανταλαγή μυνημάτων 
+που προκύπτουν από συμβάντα \en{events} \cite{EventsArchWiki}. Αυτού του είδους η αρχιτεκτονική 
+είναι συνήθης σε πολλές βιβλιοθήκες ανάπτυξης διεπαφών.
+
 \paragraph{Χρήση}
+
+\subsection{\en{Audio Plugin Hosts}}
+
+Πλέον, η χρήση των περισσότερων εφαρμογών \en{DSP} γίνεται μέσα 
+από άλλα προγράμματα τα οποία παίζουν το ρόλο του οικοδεσπότη 
+και φιλοξενούν το δικό μας λογισμικό. Η επικοινωνία μεταξύ 
+του \en{plugin} μας και του \en{host} γίνεται μέσα από 
+ένα \en{API}, μέσα από το οποίο έχουν οριστεί οι δομές δεδομένων 
+και οι ρουτίνες με βάση τις οποίες θα γίνει η μεταφορά πληροφορίας 
+μεταξύ των δύο. 
 
 \begin{figure}[htpb]
     \centering
-    \includegraphics[width=0.8\textwidth]{./assets/Carla_Basic.png}
-    \caption{Εφαρμογή του \src{SimpleEq plugin} στο περιβάλλον \en{Carla}.}
-    \label{fig:carla_basic}
+    \includegraphics[width=0.8\textwidth]{./assets/audio_plugin_host.png}
+    \caption{Διάγραμμα ενός \en{audio plugin host}.}
+    \label{fig:}
 \end{figure}
+
+Αυτή η επικοινωνία μπορεί να γίνει μέσα από το δυναμικό 
+φόρτωμα κώδικα \cite{DynamicLoadWiki}, όπου 
+ο κώδικας του \en{plugin} μας φορτώνεται και εκτελείται όσο τρέχει
+το \en{host} πρόγραμμα. \cite{DesignPlugins}
+
+Οι \en{hosts} συνοδεύονται συχνά από γραφικές διεπαφές και επιτρέπουν ακόμα 
+το χειρισμό των \en{client} προγραμμάτων μέσα από τις δικές του γραφικές 
+διεπαφές. Αυτή η επικοινωνία καθοδηγείται επίσης από ένα \en{API}. 
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./assets/plugin_client.png}
+    \caption{Περίπτωση όπου ο \en{host} ελέγχει το \en{UI} το οποίο με τη σειρά του ελέγχει το \en{plugin}}
+    \label{fig:}
+\end{figure}
+
+
+\begin{figure}[!htb]
+
+    \begin{center}
+        \begin{tikzpicture}[node distance = 2cm]
+
+        \node [draw,
+        fill=Goldenrod,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        ] (kernel) {\en{Kernel}};
+
+        \node [draw,
+        fill=GreenYellow,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        below of = kernel
+        ] (sounddriver) {\en{Sound Card Driver}};
+
+        \node [draw,
+        fill=Thistle,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        right=2cm,
+        right of = sounddriver
+        ] (audioserver) {\en{Audio Server}};
+
+        \node [draw,
+        fill=Peach,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        right=2cm,
+        right of = audioserver
+        ] (app1) {\en{App}};
+
+        \node [draw,
+        fill=Peach,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        above of = app1
+        ] (app2) {\en{App}};
+
+        \node [draw,
+        fill=Peach,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        below of = app1
+        ] (app3) {\en{App}};
+
+        \draw[->] (sounddriver) -- (kernel) 
+            node[midway,above]{};
+
+        \draw[->] (sounddriver) -- (audioserver) 
+            node[midway,above]{};
+
+            \foreach \app in {app1, app2, app3}
+            {
+                \draw[<->] (audioserver) -- (\app) 
+                    node[midway,above]{};
+            }
+
+        \end{tikzpicture}
+    \end{center}
+
+    \caption{Στοίβα τεχνολογιών ήχου σε ένα \en{Linux} σύστημα.} 
+\end{figure}
+
+\paragraph{Αρχιτεκτονική ήχου σε \en{Linux} σύστημα}
+
+Η ιστορία για οποιδήποτε σύνολο από πρότυπα είναι πάντα περίπλοκη 
+και πολύ συχνά δυσάρεστη. Εδώ θα παραθέσουμε τα κύρια σημεία 
+και θα δείξουμε τον τρόπο με τον οποίο έχουμε στήσει τώρα ένα σύστημα 
+ικανό για περίπλοκη διαχείριση των πηγών ήχων του. 
+
+Στο διάγραμμα, αυτό με το οποίο ένας χρήστης θα έρχεται περισσότερο σε επαφή
+είναι ο διακοσμιτής ήχου (\en{audio server}). Αυτός βρίσκεται σε άμεση
+επικοινωνία με τους \en{drivers} οι οποίοι τελικά θα πουν στο υλικό πώς να
+συμπεριφερθεί ώστε να ακουστεί ήχος από μία συσκευή. Ο διακοσμιτής δέχεται
+δεδομένα ήχου από πολλές διαφορετικές εφαρμογές και βγάζει μία ενιαία σειρά από
+δεδομένα. Αυτό μας επιτρέπει να ακούμε πολλές ερφαρμογές ταυτόχρονα παιρνόντας
+την καθεμία από το κανάλι ενός εικονικού \en{mixer}. Φυσικά, θα μπορούσαμε να
+μην έχουμε έναν \en{audio server} και να επικοινωνούσε η οποιαδήποτε διεργασία
+μας που παρήγαγε ήχο με τον \en{driver}. Αυτό θα σήμαινε όμως πως μόνο μία
+διεργασία θα μπορούσε να μιλήσει με την κάρτα ήχου ανά πάσα στιγμή, δεδομένου
+το πώς είναι δομημένο το \en{audio backend} στο σύστημά μας. Πλέον το πιο
+συνήθες σύστημα για \en{audio driver} έιναι το \src{ALSA}. \cite{ALSA} Τώρα,
+για τον \en{audio server} υπάρχουν διάφορες επιλογές. Για πολύ καιρό η βασική
+επιλογή ήταν το \en{PulseAudio} \cite{PulseAudio}, το οποίο όμως ήταν αδύναμο
+σε εφαρμογές χαμηλής καθυστέρησης όπως είναι η παραγωγή μουσικής. Σε αυτές τις
+περιπτώσεις χρησιμοποιούταν ο διακοσμιτής \en{JACK} \cite{JACK}.
+Έτσι, υπάρχει πλέον προσπάθεια δημιουργίας μίας νέα υλοποίησης η οποία 
+θα συμπεριλαμβάνει τα θετικά και των δύο \en{audio servers}. Αυτό είναι 
+το \en{Pipewire} \cite{Pipewire} και δίνει τη δυνατότητα εύκολης 
+επικοινωνίας μεταξύ όλων των συσκευών και διεργασιών του συστήματος,
+ακόμα και σε περιβάλλοντα υψηλών επιδόσεων. Η μηχανή του \en{Pipewire} 
+γίνεται σταδιακά ευρέως αποδεκτή στην κοινότητα ακόμα και από τους 
+προγραμματιστές των \say{αντίπαλων} \en{audio servers}. \cite{PipewireLWNArt}
+
+\paragraph{\en{Carla}}
 
 Για την χρήση του \en{plugin} \src{Simple EQ} μπορεί να γίνει 
 σύνδεσή του με άλλες ροές ήχου στον υπολογιστή μέσω ενός \en{audio plugin host}.
@@ -346,7 +543,28 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 στον υπολογιστή μας, μέσα από κάποιο \en{plugin} και τελικά να έχουμε την έξοδο 
 στα ηχεία (ή οποιαδήποτε άλλη συσκευή).
 
-Πιο συνιθέστερη όμως θα είναι η χρήση του \en{plugin} μέσα από ένα λογισμικό 
+Για να γίνει πιο κατανοητός ο τρόπος με τον οποίο 
+το λογισμικό \en{Carla} παίρνει θέση ανάμεσα στις άλλες τεχνολογίες 
+που χρησιμοποιούμε, μπορούμε να το φανταστούμε σαν ένα μεσάζοντα μεταξύ του 
+\en{audio server} (\en{Pipewire}) και του \en{plugin} μας.
+
+Η εφαρμογή \en{Carla} \say{κουμπώνει} στον \en{audio server} 
+ή στον εγχώριο \en{sound driver}. Έτσι, μπορεί να ελέγχει την 
+πορεία των σημάτων ήχου. Στην γραφική της διεπαφή 
+το μπλε χρώμα υποδηλώνει μία είσοδο/έξοδο \en{audio}, ενώ 
+το κόκκινο χρώμα αντιστοιχεί σε μία είσοδο/έξοδο 
+που χειρίζεται συμβάντα. Αυτά συνύθως αποτελούν \en{MIDI events}.
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./assets/Carla_Basic.png}
+    \caption{Εφαρμογή του \src{SimpleEq plugin} στο περιβάλλον \en{Carla}.}
+    \label{fig:carla_basic}
+\end{figure}
+
+
+\paragraph{\en{Digital Audio Workstation}}
+Συνήθης είναι επίσης η χρήση του \en{plugin} μέσα από ένα λογισμικό 
 \en{DAW (Digital Audio Workstation)}, όπου μπορούμε να φορτώσουμε δυναμικά 
 το \src{Simple EQ}, να προσθέσουμε σε ένα από τα κομμάτια του \en{mixer} 
 και έτσι όποιος ήχος περνάει σε εκείνο το κανάλι θα επεξεργάζεται από τον \en{plugin}. 
