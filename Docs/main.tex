@@ -8,7 +8,7 @@
 \modulolinenumbers[5]
 \usepackage{caption}
 \usepackage{subcaption}
-\usepackage[margin=0.5in]{geometry}
+\usepackage[margin=1in]{geometry}
 
 \usetikzlibrary{positioning}
 \usetikzlibrary{dsp,chains}
@@ -30,7 +30,7 @@
      \begin{subfigure}[b]{\textwidth}
          \centering
          \includegraphics[width=\textwidth]{#1.png}
-         \caption{Φασματογράφημα του αρχείου.}
+         \caption{Φασματογράφημα του τελικού αρχείου.}
      \end{subfigure}
      \hfill
      % \begin{subfigure}[b]{\textwidth}
@@ -68,13 +68,19 @@
     προσφέρει το πακέτο \en{JUCE}. 
     Τέλος, υπάρχει ανάλυση των επιδόσεων του φίλτρου όπως και μία σύντομη αναφορά πάνω 
     στην ευκολία χρήσης του.
+
+    Γίνεται μία σύντομη παρουσίαση ανάπτυξης ενός \en{DSP plugin}. Πέραν από
+    την ανάπτυξη του κώδικα υπεύθυνου για την ψηφικαή επεξεργασία με βάση τον
+    οποίο θα λειτουργεί η εφαρμογή, γίνεται και ανάλυση του περιβάλλοντος μέσα
+    στο οποίο θα υπάρχει αυτή η εφραμογή.
+
 \end{abstract}
 
 % \tableofcontents
 
 \end{titlepage}
 
-\linenumbers
+% \linenumbers
 
 \section{Εισαγωγή}
 
@@ -342,8 +348,6 @@
 λέξης-κλειδί \src{auto} \cite{CppReferenceAuto}, η οποία αναθέτει στον \en{compiler} το συμπέρασμα του τύπου 
 της εκάστοτε μεταβλητής.
 
-\vspace{5mm}
-
 \begin{figure}
 \centering
     \input{IIR.tex}
@@ -375,9 +379,45 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 σύνθετες γραφικές διεπαφές μέσα από τις οποίες μπορεί κάποιος να ελέγχει 
 το \en{DSP} μέρος της εφαρμογής (συχνότητες αποκοπής κτλ).
 
-Έχουμε στη διάθεση μας πολλές επιλογές όσων αφορά την εμφάνιση της εφαρμογής. 
-Η παρουσίαση έχει πολλά να κάνει και με την ευχρηστεία της εφαρμογής. 
-Ελπίζουμε η απλή διεπαφή να συμβάλει σε αυτό το σκοπό. 
+Η βιβλιοθήκη \en{JUCE} επιτρέπει την δημιουργία διεπαφών 
+ανεξάρτητες από την πλατφόρμα στην οποία θα εκτελεστεί η εφαρμογή. 
+Ο κώδικας δημιουργίας παραθύρων και γραφικών είναι πολύ εξαρτούμενος από 
+το σύστημα του χρήστη. Για αυτό η το λόγο προτιμείται να χρησιμοποιούνται 
+τα εργαλεία της βιβλιοθήκης τα οποία παρουσιάζουν ένα \en{API} 
+με το οποίο μπορούμε να δημιουργήσουμε μία διεπαφή αδιαφορώντας από την 
+\en{low-level} επικοινωνία με το σύστημα του χρήστη.
+
+
+\tikzset{
+    block/.style={
+        draw,
+        inner sep=1pt,
+        minimum width=2cm,
+        minimum height=1.2cm,
+        },
+}
+
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[node distance = 1.5cm]
+        \node[block, fill=Goldenrod] (system1) {\en{Windows Graphics API}};
+        \node[block, fill=Goldenrod, below of = system1] (system2) {\en{Linux Graphics API}};
+        \node[block, fill=Goldenrod, below of = system2] (system3) {\en{Other Graphics API}};
+        \node[block, fill=SkyBlue, right=2cm of system2] (juce) {\en{JUCE Graphics API}};
+        \node[block, fill=Green, right=2cm of juce] (code) {\en{Plugin Code}};
+
+        \foreach \sys in {system1, system2, system3}
+        {
+            \draw[line width=1, -] (juce) -- (\sys.east) node[]{};
+        }
+
+        \draw[line width=1, -] (code) -- (juce) node[]{};
+    \end{tikzpicture}
+    \caption{Χρήση του \en{API} για γραφικά της βιβλιοθήκης \en{JUCE}}
+\end{figure}
+
+Έτσι, μπορούμε να γράψουμε τον κώδικα για γραφικά μία φορά και 
+να λειτουργεί σε όλες τις πλατφόρμες.
 
 Είναι άξιο αναφοράς πως σε γραμμές κώδικα, η γραφική διεπαφή χρειάστηκε 
 περισσότερη συγγραφή σε σχέση με τον επεξεργαστή συμάτων. 
@@ -413,12 +453,6 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 και οι ρουτίνες με βάση τις οποίες θα γίνει η μεταφορά πληροφορίας 
 μεταξύ των δύο. 
 
-\begin{figure}[htpb]
-    \centering
-    \includegraphics[width=0.8\textwidth]{./assets/audio_plugin_host.png}
-    \caption{Διάγραμμα ενός \en{audio plugin host}.}
-    \label{fig:}
-\end{figure}
 
 Αυτή η επικοινωνία μπορεί να γίνει μέσα από το δυναμικό 
 φόρτωμα κώδικα \cite{DynamicLoadWiki}, όπου 
@@ -436,6 +470,18 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
     \label{fig:}
 \end{figure}
 
+Το βασικό σημείο είναι η επξεργασία των δεδομένων ήχου. Εδώ, 
+ο \en{audio plugin host} παίρνει σαν είσοδο τα δεδομένα ήχου (πχ. από τον σκληρό δίσκο) 
+και τα προωθεί στο \en{plugin} που φιλοξενεί, μαζί με δεδομένα όπως 
+το \en{sample rate} και ο αριθμός καναλιών.
+Με τη σειρά του το \en{plugin} εκτελεί προκαθορισμένες ρουτίνες με βάση το \en{API}
+στις οποίες εμείς έχουμε προσθέσει τον εξειδικευμένο κώδικά μας για την εφαρμογή μας.
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=\textwidth]{./assets/events.png}
+    \caption{Η επικοινωνία μεταξύ του \en{Plugin Host} και του \en{Plugin} μας.}
+\end{figure}
 
 \begin{figure}[!htb]
 
@@ -485,15 +531,15 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
         below of = app1
         ] (app3) {\en{App}};
 
-        \draw[->] (sounddriver) -- (kernel) 
+        \draw[->, line width =1] (sounddriver) -- (kernel) 
             node[midway,above]{};
 
-        \draw[->] (sounddriver) -- (audioserver) 
+        \draw[->, line width =1] (sounddriver) -- (audioserver) 
             node[midway,above]{};
 
             \foreach \app in {app1, app2, app3}
             {
-                \draw[<->] (audioserver) -- (\app) 
+                \draw[<->, line width =1] (audioserver) -- (\app) 
                     node[midway,above]{};
             }
 
@@ -502,6 +548,21 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 
     \caption{Στοίβα τεχνολογιών ήχου σε ένα \en{Linux} σύστημα.} 
 \end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=\textwidth]{./assets/audio_plugin_host.png}
+    \caption{Διάγραμμα ενός \en{audio plugin host}.}
+    \label{fig:}
+\end{figure}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=\textwidth]{./assets/insides.png}
+    \caption{Το περιβάλλον \en{Carla} επικοινωνεί με τον \en{audio server}, είναι μία από τις εφαρμογές του και ταυτόχρονα μπορεί να φιλοξενήσει άλλες εφαρμογές σαν \en{plugins}.}
+\end{figure}
+
+
 
 \paragraph{Αρχιτεκτονική ήχου σε \en{Linux} σύστημα}
 
@@ -596,7 +657,12 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
 \filterspectrums{./assets/WhiteNoiseLP}{Το σήμα λευκού θορύβου με εφαρμογή χαμηλοπερατού φίλτρου στα $1000Hz$.}
 \filterspectrums{./assets/WhiteNoiseHP}{Το σήμα λευκού θορύβου με εφαρμογή υψιπερατού φίλτρου στα $1000Hz$.}
 
-Μία παρατήρηση είναι πως στην περίπτωση του υψιπερατού φίλτρου, οι υψηλές συχνότητες 
+Μία παρατήρηση είναι πως στην περίπτωση του υψιπερατού φίλτρου, οι υψηλές συχνότητες φαίνεται 
+να ενισχύονται παραπάνω από τα αρχικά τους επίπεδα. Αυτό πιθανότατα να οφείλεται στο αναπόφευκτο \en{phase shift}
+που προκαλεί το \en{plugin} το οποίο προκαλεί συχνότητες να συγχρονιστούν σε φάση οδηγώντας σε διακρότημα
+και έτσι ενίσχυσή τους.
+
+\iffalse
 
 Για μερικές ακόμα μετρήσεις χρησιμοποιήθηκε το τραγούδι \en{Bring Me the Disco King - David Bowie} 
 το οποίο περάσαμε μέσα από \src{Simple EQ}. 
@@ -624,6 +690,24 @@ other 90 percent of the development time}}{\en{\textit{Tom Cargill, Bell Labs}}}
     \label{fig:sessionanalysishp1000}
 \end{figure}
 
+\fi
+
+\section{Συμπεράσματα}
+
+Η χρήση μίας βιβλιοθήκης όπως η \en{JUCE} φέρνει πολλά χρήσιμα εργαλεία 
+αφού διαχωρίζει την ανάπτυξη του \en{DSP} από την λειτουργεία του συστήματος που 
+θα φιλοξενήσει το \en{plugin}. 
+
+Ένα σύγχρονο σύστημα αποτελείται από πολλά κινούμενα μέρη, από τις εφαρμογές 
+του μέχρι την τελική επικοινωνία με το υλικό. Όλα αυτά συνδέονται μεταξύ τους
+με (επί το πλείστον) συμπαγείς αφαιρέσεις όπως είναι ο διακοσμιτής ήχου (\en{sound server}).
+Η παρουσίαση όλων αυτών των κομματιών είναι χρήσιμη για την καλύτερη κατανόηση 
+των προκλήσεων ανάπτυξης μιας τέτοιας εφαρμογής.
+
+Η τεχνολογία των \en{Audio Plugin Hosts} απλοποιεί πολύ 
+τη χρήση των εφαρμογών μας αφού περίπλοκες πράξεις όπως ανακατεύθυνση της 
+ροής ήχου από μία συσκευή σε μία άλλη μετατρέπεται στην γραφική σύνδεση
+δύο νοητών θυρών με ένα νοητό καλώδιο.
 
 \newpage
 
